@@ -2,14 +2,12 @@ import os
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
-import pandas as pd
 from scipy.signal import welch
 
-def readData():
+def readData(diretorio, num_files):
     base_path = os.path.dirname(__file__)
-    directory = os.path.join(base_path, 'Continuous\Continuous')
+    directory = os.path.join(base_path, diretorio)
 
-    num_files = 1
     data_dict = {}
 
     for i in range(1, num_files + 1):
@@ -101,17 +99,17 @@ def featureVect(data_dict, fs=1000, window_duration=30):
 
             magnitude = magnitude_of_movement(data[start:end, :])
 
-            lags, corr_frontal = cross_correlation(win_frontal, magnitude)
+            #lags, corr_frontal = cross_correlation(win_frontal, magnitude)
 
-            lags, corr_parietal = cross_correlation(win_parietal, magnitude)
+            #lags, corr_parietal = cross_correlation(win_parietal, magnitude)
 
             feature_names = [
                  "delta_f", "theta_f", "sigma_f", "beta_f", 
                  "delta_p", "theta_p", "sigma_p", "beta_p",
                  "ratio_d_t_f", "ratio_d_t_p",
                  "var_acc_x", "var_acc_y", "var_acc_z",
-                 "mean_magnitude", "max_magnitude", "min_magnitude",
-                 "mean_corr_frontal", "mean_corr_parietal"]
+                 "mean_magnitude", "max_magnitude", "min_magnitude"]
+                 #"mean_corr_frontal", "mean_corr_parietal"]
             
             features = [
                 delta_f, theta_f, delta_p, theta_p, 
@@ -121,18 +119,10 @@ def featureVect(data_dict, fs=1000, window_duration=30):
                 np.mean(magnitude),
                 np.max(magnitude), 
                 np.min(magnitude),
-                np.mean(corr_frontal), 
-                np.mean(corr_parietal)  
+                #np.mean(corr_frontal), 
+                #np.mean(corr_parietal)  
             ]
             
             features_list.append(dict(zip(feature_names, features)))
 
     return features_list
-
-
-data_dict = readData()
-features = featureVect(data_dict)
-df_features = pd.DataFrame(features)
-print(f"Shape das características extraídas: {df_features.shape}")
-"""for key, value in features[0].items():
-    print(f"{key}: {value}")"""
