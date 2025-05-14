@@ -6,7 +6,6 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 def dimensionality_reduce(data, n_neighbors=15, min_dist=0.1, n_components=2, random_state=42):
-    # Possibilidade de fazer tunning do n_neighbors e min_dist
     reducer = umap.UMAP(
         n_neighbors=n_neighbors,
         min_dist=min_dist,
@@ -17,11 +16,23 @@ def dimensionality_reduce(data, n_neighbors=15, min_dist=0.1, n_components=2, ra
     embedding = reducer.fit_transform(data)
     return embedding
 
-def dbscan_clustering(embedding, eps=0.1, min_samples=30):
-    # Possibilidade de fazer tunning do eps e min_samples
+""" def dbscan_clustering(embedding, eps=0.1, min_samples=30):
     dbscan = DBSCAN(eps=eps, min_samples=min_samples)
     labels = dbscan.fit_predict(embedding)
-    return labels
+    return labels """
+
+def dbscan_find_3_clusters(embedding, 
+                           eps_range=np.linspace(0.05, 1.0, 5), 
+                           min_samples_range=[30, 40, 50, 60, 70]):
+    for min_samples in min_samples_range:
+        for eps in eps_range:
+            labels = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(embedding)
+            n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+            if n_clusters == 3:
+                print(f"Found 3 clusters with eps={eps:.2f}, min_samples={min_samples}")
+                return labels
+    print("Could not find combination that results in 3 clusters.")
+    return DBSCAN(eps=0.5, min_samples=10).fit_predict(embedding) 
 
 def remove_outliers(data, labels):
 
