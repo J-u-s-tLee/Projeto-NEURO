@@ -22,6 +22,6 @@ k_means_embedding, k_means_labels = umap_reduction.remove_outliers(embedding, k_
 mask = np.isin(k_means, k_means_labels)
 filtered_data = Data[mask]
 filtered_labels = k_means_labels
-Labeling.ordering(filtered_data, labels=filtered_labels, start_time=20, end_time=200, feature_index=8)
-Labeling.ordering(filtered_data, labels=filtered_labels, start_time=20, end_time=200, feature_index=9)
-Labeling.ordering(filtered_data, labels=filtered_labels, start_time=20, end_time=200, feature_index=13)
+labeling.ordering(filtered_data, labels=filtered_labels, start_time=20, end_time=200, feature_index=8)
+labeling.ordering(filtered_data, labels=filtered_labels, start_time=20, end_time=200, feature_index=9)
+labeling.ordering(filtered_data, labels=filtered_labels, start_time=20, end_time=200, feature_index=13)
