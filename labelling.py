@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def ordering(samples, labels, start_time, end_time, feature_index=0):
+def ordering(samples, labels, start_time, end_time, feature_index=0, save_path=None):
     samples = np.array(samples)
     labels = np.array(labels)
     samples_per_minute = 2
@@ -34,5 +34,10 @@ def ordering(samples, labels, start_time, end_time, feature_index=0):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    
+    if save_path:
+        plt.savefig(save_path, dpi=300)
+    else:
+        plt.show()
 
+    plt.close()
