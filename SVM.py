@@ -7,6 +7,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+import os
 
 def gridsearch(X_train, X_validation, y_train, y_validation, param_grid):
 
@@ -28,7 +29,7 @@ def gridsearch(X_train, X_validation, y_train, y_validation, param_grid):
 
     return grid.best_estimator_
 
-def svm_test(best_model, X_test, y_test):
+def svm_test(best_model, X_test, y_test, output_path):
 
     y_pred = best_model.predict(X_test)
     y_pred_prob = best_model.predict_proba(X_test)
@@ -54,4 +55,7 @@ def svm_test(best_model, X_test, y_test):
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
     plt.title("Confusion Matrix (Best Kernel)")
-    plt.show()
+   
+    plt.savefig(os.path.join(output_path, 'SVM_confusion_matrix.png'))
+
+    plt.close()
