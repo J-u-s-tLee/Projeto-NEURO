@@ -1,6 +1,5 @@
 import numpy as np 
 from sklearn.cluster import DBSCAN
-import matplotlib.pyplot as plt
 
 def dbscan_find_3_clusters(embedding, 
                            eps_range=np.linspace(0.05, 1.0, 5), 
@@ -21,19 +20,3 @@ def remove_outliers(data, labels):
     filtered_data = data[non_outliers] 
     filtered_labels = labels[non_outliers]
     return filtered_data, filtered_labels
-
-def plot_embedding(embedding, labels=None, figsize=(8, 6), point_size=10, cmap='plasma'):
-
-    plt.figure(figsize=figsize)
-
-    if labels is not None:
-        scatter = plt.scatter(embedding[:, 0], embedding[:, 1], c=labels, cmap=cmap, s=point_size)
-        plt.colorbar(scatter, label='Label')
-    else:
-        plt.scatter(embedding[:, 0], embedding[:, 1], color='gray', s=point_size)
-    
-    plt.title("UMAP Projection")
-    plt.xlabel("UMAP 1")
-    plt.ylabel("UMAP 2")
-    plt.tight_layout()
-    plt.show()
