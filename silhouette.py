@@ -5,7 +5,7 @@ import numpy as np
 def silhouettescore(embedding, labels):
     return silhouette_score(embedding, labels)
 
-def silhouette_plot(embedding, labels, n_clusters):
+def silhouette_plot(embedding, labels, n_clusters, save_path=None):
     sample_silhouette_values = silhouette_samples(embedding, labels)
 
     fig, ax = plt.subplots()
@@ -29,4 +29,8 @@ def silhouette_plot(embedding, labels, n_clusters):
     ax.set_xlabel("Silhouette Coefficient")
     ax.set_ylabel("Cluster Label")
     ax.axvline(x=silhouette_score(embedding, labels), color="red", linestyle="--")
-    plt.show()
+    
+    if save_path:
+        plt.savefig(save_path, dpi=300)
+    else:
+        plt.show()
