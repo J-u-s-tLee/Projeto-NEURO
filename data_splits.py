@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-def load_and_split_data(filepath='supervised_output/labelled_data.csv', label_column='class', train_size=0.7, val_size=0.2, test_size=0.1, random_state=42):
+def load_and_split_data(filepath='unsupervised_output/labelled_data.csv', label_column='class', train_size=0.7, val_size=0.2, test_size=0.1, random_state=42):
         
         df = pd.read_csv(filepath)
         df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
