@@ -27,7 +27,7 @@ filtered_embedding, filtered_labels = dbscan.remove_outliers(embedding, dbscan_l
 umap_reduction.plot_embedding(filtered_embedding, labels=filtered_labels, save_path='unsupervised_output/dbscan.png')
 
 kmeans_labels = kmeans.Kmeans_method(filtered_embedding, 3)
-umap_reduction.plot_embedding(filtered_embedding, labels=kmeans_labels, save_path='supervised_output/kmeans.png')
+umap_reduction.plot_embedding(filtered_embedding, labels=kmeans_labels, save_path='unsupervised_output/kmeans.png')
 
 silhouette.silhouette_plot(filtered_embedding, kmeans_labels, n_clusters=3, save_path='unsupervised_output/silhouette_plot_kmeans.png')
 silhouette.silhouette_plot(filtered_embedding, filtered_labels, n_clusters=3, save_path='unsupervised_output/silhouette_plot_dbscan.png')
