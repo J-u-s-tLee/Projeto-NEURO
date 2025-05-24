@@ -1,7 +1,7 @@
 import umap
 import matplotlib.pyplot as plt
 
-def dimensionality_reduce(data, n_neighbors=15, min_dist=0.1, n_components=2, random_state=42):
+def dimensionality_reduce(data, n_neighbors=30, min_dist=0.2, n_components=2, random_state=42):
     
     reducer = umap.UMAP(
         n_neighbors=n_neighbors,
