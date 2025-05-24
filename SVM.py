@@ -7,22 +7,15 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+import json
 import os
 
-def gridsearch(X_train, X_validation, y_train, y_validation, param_grid):
-
-    X_train_val = pd.concat([X_train, X_validation])
-    y_train_val = pd.concat([y_train, y_validation])
-
-    split_index = [-1] * len(X_train) + [0] * len(X_validation)
-    predefined_split = PredefinedSplit(test_fold=split_index)
+def gridsearch(X_train, y_train, param_grid, cv=5):
 
     svc = svm.SVC(class_weight='balanced', probability=True)
-    grid = model_selection.GridSearchCV(estimator=svc, param_grid=param_grid, cv=predefined_split, scoring='accuracy')
+    grid = model_selection.GridSearchCV(estimator=svc, param_grid=param_grid, cv=cv, scoring='accuracy')
 
-    grid.fit(X_train_val, y_train_val)
-
-    cv_results_df = pd.DataFrame(grid.cv_results_)
+    grid.fit(X_train, y_train)
 
     print("Best Parameters:", grid.best_params_)
     print("Best Score:", grid.best_score_)
@@ -35,27 +28,39 @@ def svm_test(best_model, X_test, y_test, output_path):
     y_pred_prob = best_model.predict_proba(X_test)
 
     y_test =y_test.values.ravel()
+
+    balanced_acc = balanced_accuracy_score(y_test, y_pred)
+
+
     label_encoder = LabelEncoder()
     label_encoder.fit(np.concatenate([y_test, y_pred]))
     y_test_encoded = label_encoder.transform(y_test)
+    auc_roc = roc_auc_score(y_test_encoded, y_pred_prob, multi_class='ovr', average='weighted')
 
+    report_dict = classification_report(y_test, y_pred, digits=4, output_dict=True)
 
-    print(f"Test Balanced Accuracy: {balanced_accuracy_score(y_test, y_pred):.4f}")
-    print(f"AUC-ROC: {roc_auc_score(y_test_encoded, y_pred_prob, multi_class='ovr', average='weighted'):.4f}")
-    print(f"Classification Report: \n{classification_report(y_test, y_pred, digits=4)}")
+    results = {
+        'balanced_accuracy': balanced_acc,
+        'auc_roc': auc_roc,
+        'classification_report': report_dict
+    }
+
+    metrics_path = os.path.join(output_path, 'SVM_metrics.json')
+    with open(metrics_path, 'w') as f:
+        json.dump(results, f, indent=4)
 
     cm = confusion_matrix(y_test, y_pred)
     cm_normalized = cm.astype('float') / cm.sum(axis=1, keepdims=True)
 
-    unique_classes = sorted(np.unique(np.concatenate([y_test, y_pred])))
+    class_labels = sorted(np.unique(np.concatenate([y_test, y_pred])))
 
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues', 
-                xticklabels=unique_classes, yticklabels=unique_classes)
+                xticklabels=class_labels, yticklabels=class_labels)
     plt.xlabel("Predicted Labels")
     plt.ylabel("True Labels")
-    plt.title("Confusion Matrix (Best Kernel)")
-   
-    plt.savefig(os.path.join(output_path, 'SVM_confusion_matrix.png'))
+    plt.title("Confusion Matrix")
 
+    cm_path = os.path.join(output_path, 'SVM_confusion_matrix.png')
+    plt.savefig(cm_path, dpi=300)
     plt.close()
