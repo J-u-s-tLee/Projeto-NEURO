@@ -31,3 +31,14 @@ def readData(diretory, start_file, end_file, output_dir):
     np.savez(output_path, **data_dict)
     print(f"\nData cached to {output_path}")
     return data_dict
+
+def combine_channels(data_dict):
+    combined_data = []
+    keys = sorted(data_dict.keys(), key=lambda x: int(x.replace('continuous', '')))
+    
+    for key in keys:
+        channel_data = data_dict[key].squeeze()
+        combined_data.append(channel_data)
+    
+    combined_array = np.concatenate(combined_data)
+    return combined_array
