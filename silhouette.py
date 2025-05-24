@@ -1,9 +1,18 @@
 import matplotlib.pyplot as plt
 from sklearn.metrics import silhouette_samples, silhouette_score
 import numpy as np
+import os
+import json
 
 def silhouettescore(embedding, labels):
     return silhouette_score(embedding, labels)
+
+def save_silhouette_scores(silhouette_scores, output_dir='unsupervised_output'):
+    os.makedirs(output_dir, exist_ok=True)
+    json_path = os.path.join(output_dir, 'silhouette_scores.json')
+    with open(json_path, 'w') as f:
+        json.dump(silhouette_scores, f, indent=4)
+    print(f"Silhouette scores saved!")
 
 def silhouette_plot(embedding, labels, n_clusters, save_path=None):
     sample_silhouette_values = silhouette_samples(embedding, labels)
