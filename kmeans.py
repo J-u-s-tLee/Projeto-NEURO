@@ -13,7 +13,7 @@ def silhouette_method(data, cluster_range):
     silhouette_avgs = []
 
     for k in cluster_range:
-        kmeans = KMeans(n_clusters=k, init='k-means++', n_init='auto', random_state=10)
+        kmeans = KMeans(n_clusters=k, init='k-means++', n_init='auto', random_state=42)
         cluster_labels = kmeans.fit_predict(data)
 
         silhouette_avg = silhouette_score(data, cluster_labels)
@@ -37,7 +37,7 @@ def elbow_method(data, range):
     
     distortion = []
     for k in range:
-        kmeans = KMeans(n_clusters=k, random_state=10)
+        kmeans = KMeans(n_clusters=k, random_state=42)
         kmeans.fit(data)
         distortion.append(kmeans.inertia_)
 
@@ -51,7 +51,7 @@ def elbow_method(data, range):
 
 def Kmeans_method(data, k):
 
-    k_means = KMeans(n_clusters=k, init='k-means++', n_init='auto', random_state=10)
+    k_means = KMeans(n_clusters=k, init='k-means++', n_init='auto', random_state=42)
     cluster_labels = k_means.fit_predict(data)
 
     return cluster_labels
