@@ -20,7 +20,7 @@ def band_power(signal, fs, band, nperseg=2048, noverlap=None):
 def delta_theta_ratio_welch(eeg_signal, fs, nperseg=2048):
     
     delta_band = (0.5, 4)  
-    theta_band = (4, 8)   
+    theta_band = (6, 10)   
     
     delta_power = band_power(eeg_signal, fs, delta_band, nperseg)
     theta_power = band_power(eeg_signal, fs, theta_band, nperseg)
@@ -42,11 +42,13 @@ def featureVect(data_dict, fs=1000, window_duration=30):
     window_size = window_duration * fs  
     features_list = []
 
+    #print('\n')
+
     for key, data in data_dict.items():
         n_samples = data.shape[0]
         n_windows = n_samples // window_size
 
-        print(f"Processing {key} - {n_windows} windows")
+        #print(f"Processing {key} - {n_windows} windows")
 
         for i in range(n_windows):
             start = i * window_size
@@ -59,16 +61,16 @@ def featureVect(data_dict, fs=1000, window_duration=30):
             win_acc_x = data[start:end, 4]
 
             delta_f = band_power(win_frontal, fs, (0.5, 4))
-            theta_f = band_power(win_frontal, fs, (4, 8))
-            sigma_f = band_power(win_frontal, fs, (12, 16))
+            theta_f = band_power(win_frontal, fs, (6, 10))
+            sigma_f = band_power(win_frontal, fs, (10, 16))
             beta_f = band_power(win_frontal, fs, (16, 30)) 
             delta_p = band_power(win_parietal, fs, (0.5, 4))
-            theta_p = band_power(win_parietal, fs, (4, 8))
-            sigma_p = band_power(win_parietal, fs, (12, 16)) 
+            theta_p = band_power(win_parietal, fs, (6, 10))
+            sigma_p = band_power(win_parietal, fs, (10, 16)) 
             beta_p = band_power(win_parietal, fs, (16, 30)) 
 
-            ratio_d_t_f = delta_theta_ratio_welch(win_frontal, fs)
-            ratio_d_t_p = delta_theta_ratio_welch(win_parietal, fs)
+            ratio_d_t_f = delta_f / theta_f
+            ratio_d_t_p = delta_p / theta_p
 
             var_acc_x = np.var(win_acc_x)
             var_acc_y = np.var(win_acc_y)
