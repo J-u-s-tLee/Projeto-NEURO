@@ -1,5 +1,8 @@
 import os
 import pandas as pd
+from scipy.io import loadmat
+import h5py
+import numpy as np
 
 def relabel_dataset(input_folder, output_folder, label_maps):
     os.makedirs(output_folder, exist_ok=True)
@@ -42,3 +45,29 @@ def combine_and_remap_classes(output_folder, reverse_map, combined_filename):
 
     combined_df.to_csv(combined_filename, index=False)
     print(f"\nFinal combined file saved to {combined_filename}")
+
+def merge_mat_files(input_files, output_file, var_name=None):
+    if os.path.exists(output_file):
+        return
+    
+    arrays = []
+
+    for file in input_files:
+        mat_data = loadmat(file)
+        keys = [k for k in mat_data.keys() if not k.startswith('__')]
+        
+        if var_name is None:
+            key = keys[0]
+        else:
+            key = var_name
+        
+        arrays.append(mat_data[key])
+
+    combined_data = np.vstack(arrays)
+
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+    with h5py.File(output_file, 'w') as f:
+        f.create_dataset('combined_data', data=combined_data, compression='gzip')
+
+    print(f"Data saved at '{output_file}'")
