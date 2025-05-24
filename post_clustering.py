@@ -1,73 +1,44 @@
 import os
-import pandas as pd
-from scipy.io import loadmat
-import h5py
 import numpy as np
+import h5py
 
-def relabel_dataset(input_folder, output_folder, label_maps):
-    os.makedirs(output_folder, exist_ok=True)
+def readData(diretory, start_file, end_file, output_dir):
+    base_path = os.path.dirname(__file__)
+    directory = os.path.join(base_path, diretory)
+    output_path = os.path.join(output_dir, f'data_cache_{start_file}_{end_file}.npz')
 
-    for filename in os.listdir(input_folder):
-        if filename.endswith('.csv'):
-            filepath = os.path.join(input_folder, filename)
-            print(f"Processing {filename}...")
-            
-            df = pd.read_csv(filepath)
-            
-            mouse_name = None
-            for mouse in label_maps.keys():
-                if filename.startswith(mouse):
-                    mouse_name = mouse
-                    break
-            
-            if mouse_name is None:
-                print(f"Mouse name not found for file {filename}, skipping.")
-                continue
-            
-            label_map = label_maps[mouse_name]
-            
-            df['class'] = df['class'].map(label_map)
-            
-            output_path = os.path.join(output_folder, filename)
-            df.to_csv(output_path, index=False)
-            print(f"Saved relabeled file to {output_path}")
+    if os.path.exists(output_path):
+        print(f"Loading cached data from {output_path} ...")
+        return dict(np.load(output_path, allow_pickle=True))
 
-def combine_and_remap_classes(output_folder, reverse_map, combined_filename):
-    all_dfs = []
-    for filename in os.listdir(output_folder):
-        if filename.endswith('.csv'):
-            filepath = os.path.join(output_folder, filename)
-            df = pd.read_csv(filepath)
-            all_dfs.append(df)
+    data_dict = {}
+
+    for i in range(start_file, end_file + 1):
+        file_path = os.path.join(directory, f'continuous{i}.mat')
+
+        if file_path.endswith('.mat'):
+            print(f"Reading file: {file_path}")
+            try:
+                with h5py.File(file_path, 'r') as f:
+                    data = f['data_bin'][:]
+                    data = np.array(data, dtype=np.float32)
+                    data = np.delete(data, 0, axis=1) 
+                    data_dict[f'continuous{i}'] = data
+            except Exception as e:
+                print(f"Error reading file (h5py): {file_path}")
+                print(str(e))
+
+    np.savez(output_path, **data_dict)
+    print(f"\nData cached to {output_path}")
+    return data_dict
+
+def combine_channels(data_dict):
+    combined_data = []
+    keys = sorted(data_dict.keys(), key=lambda x: int(x.replace('continuous', '')))
     
-    combined_df = pd.concat(all_dfs, ignore_index=True)
-    combined_df['class'] = combined_df['class'].map(reverse_map)
-
-    combined_df.to_csv(combined_filename, index=False)
-    print(f"\nFinal combined file saved to {combined_filename}")
-
-def merge_mat_files(input_files, output_file, var_name=None):
-    if os.path.exists(output_file):
-        return
+    for key in keys:
+        channel_data = data_dict[key].squeeze()
+        combined_data.append(channel_data)
     
-    arrays = []
-
-    for file in input_files:
-        mat_data = loadmat(file)
-        keys = [k for k in mat_data.keys() if not k.startswith('__')]
-        
-        if var_name is None:
-            key = keys[0]
-        else:
-            key = var_name
-        
-        arrays.append(mat_data[key])
-
-    combined_data = np.vstack(arrays)
-
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-
-    with h5py.File(output_file, 'w') as f:
-        f.create_dataset('combined_data', data=combined_data, compression='gzip')
-
-    print(f"Data saved at '{output_file}'")
+    combined_array = np.concatenate(combined_data)
+    return combined_array
