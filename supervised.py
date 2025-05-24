@@ -1,17 +1,31 @@
 import data_splits
+import post_clustering
 import RF
 import SVM
 import numpy as np
 import pandas as pd
 import os
 
-# Load and split data
+os.makedirs('supervised_output', exist_ok=True)
+
+label_maps = {
+    'Mouse1': {0:'w', 1:'nrem', 2:'rem'},
+    'Mouse2': {0:'nrem', 1:'rem', 2:'w'},
+    'Mouse3': {0:'nrem', 1:'rem', 2:'w'}
+}
+reverse_map = {'w': 0, 'nrem': 1, 'rem': 2}
+
+combined_filename = os.path.join('supervised_output', 'final_labelled_data.csv')
+
+if not os.path.exists(combined_filename):
+    post_clustering.relabel_and_save_files('unsupervised_output', 'supervised_output', label_maps)
+    post_clustering.combine_and_remap_classes('supervised_output', reverse_map, combined_filename)
+
 X_train, X_val, X_test, y_train, y_val, y_test = data_splits.load_and_split_data()
 
-X_test = pd.concat([X_val, X_test], axis=0).reset_index(drop=True)
-y_test = pd.concat([y_val, y_test], axis=0).reset_index(drop=True)
+X_train = pd.concat([X_train, X_val], axis=0).reset_index(drop=True)
+y_train = pd.concat([y_train, y_val], axis=0).reset_index(drop=True)
 
-os.makedirs('supervised_output', exist_ok=True)
 
 param_grid = {
     'n_estimators': [10, 25, 50],  
