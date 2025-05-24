@@ -34,4 +34,3 @@ def plot_embedding(embedding, labels=None, figsize=(8, 6), point_size=10, cmap='
         plt.show()
 
     plt.close()
-
