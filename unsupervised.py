@@ -9,7 +9,8 @@ import kmeans
 import labelling
 import silhouette
 import os
-import numpy as np
+import data_splits
+import joblib
 
 mouse_id = {
     'Mouse1': [1, 15],
@@ -22,21 +23,21 @@ os.makedirs('unsupervised_output', exist_ok=True)
 
 silhouette_scores = []
 
-
 for name, (start, end) in mouse_id.items():
     print(f"\n--- Processing {name} ({start} to {end}) ---")
 
-    data_dict = read_data.readData('Continuous\\Continuous', start, end, 'data_dict')
+    data_dict = read_data.readData('Continuous', start, end, 'data_dict')
 
     processed_dict = signal_processing.FilterSignals(data_dict, fs=1000)
     
     features = feature_extraction.featureVect(processed_dict)
     df_features = pd.DataFrame(features)
-    Data = data_processing.Standardization(df_features)
+    Data, scaler = data_processing.Standardization(df_features)
+    joblib.dump(scaler, r'unsupervised_output\scaler.joblib')
 
     embedding = umap_reduction.dimensionality_reduce(Data)
 
-    filtered_data, filtered_embedding, dbscan_labels = dbscan.dbscan_find_3_clusters(Data, embedding)
+    filtered_data, filtered_embedding, dbscan_labels, non_outliers = dbscan.dbscan_find_3_clusters(Data, embedding)
     umap_reduction.plot_embedding(filtered_embedding, labels=dbscan_labels, save_path=f'unsupervised_output/{name}_dbscan.png')
 
     kmeans_labels = kmeans.Kmeans_method(filtered_embedding, 3)
@@ -54,13 +55,20 @@ for name, (start, end) in mouse_id.items():
         'dbscan_score': float(score_dbscan)
     })
 
-    print(f"K-means Silhouette Score ({name}): {score_kmeans}")
-    print(f"DBSCAN Silhouette Score ({name}): {score_dbscan}")
+    silhouette.save_silhouette_scores(silhouette_scores, output_dir='unsupervised_output')
 
-    labelling.ordering(filtered_data, labels=dbscan_labels, start_time=0, end_time=600, feature_index=8, save_path=f'unsupervised_output/{name}_labelling_ratio_d_t_f.png')
-    labelling.ordering(filtered_data, labels=dbscan_labels, start_time=0, end_time=600, feature_index=9, save_path=f'unsupervised_output/{name}_labelling_ratio_d_t_p.png')
-    labelling.ordering(filtered_data, labels=dbscan_labels, start_time=0, end_time=600, feature_index=13, save_path=f'unsupervised_output/{name}_labelling_mean_magnitude.png')
+    labelling.ordering(filtered_data, labels=dbscan_labels, start_time=0, end_time=600, feature_index=8, save_path=f'unsupervised_output/{name}_dbscan_labelling_ratio_d_t_f.png')
+    labelling.ordering(filtered_data, labels=dbscan_labels, start_time=0, end_time=600, feature_index=9, save_path=f'unsupervised_output/{name}_dbscan_labelling_ratio_d_t_p.png')
+    labelling.ordering(filtered_data, labels=dbscan_labels, start_time=0, end_time=600, feature_index=13, save_path=f'unsupervised_output/{name}_dbscan_labelling_mean_magnitude.png')
+
+    labelling.ordering(filtered_data, labels=kmeans_labels, start_time=0, end_time=600, feature_index=8, save_path=f'unsupervised_output/{name}_kmeans_labelling_ratio_d_t_f.png')
+    labelling.ordering(filtered_data, labels=kmeans_labels, start_time=0, end_time=600, feature_index=9, save_path=f'unsupervised_output/{name}_kmeans_labelling_ratio_d_t_p.png')
+    labelling.ordering(filtered_data, labels=kmeans_labels, start_time=0, end_time=600, feature_index=13, save_path=f'unsupervised_output/{name}_kmeans_labelling_mean_magnitude.png')
 
     df_output = filtered_data.copy()
     df_output['class'] = dbscan_labels
     df_output.to_csv(f'unsupervised_output/{name}_labelled_data.csv', index=False)
+
+    combined_dict = read_data.combine_channels(data_dict)
+    Data_test = data_splits.get_original_samples(combined_dict, non_outliers, fs=1000, window_sec=30)
+    data_splits.save_mat(Data_test, 'unsupervised_output', f'{name}.mat')
