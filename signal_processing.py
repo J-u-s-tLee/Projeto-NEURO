@@ -36,7 +36,7 @@ def FilterSignals(data_dict, fs=1000):
 
     return filtered_dict
 
-def plot_signals(original_dict, filtered_dict, key='continuous1', fs=1000, duration=10):
+def plot_signals(original_dict, filtered_dict, key='continuous1', fs=1000, duration=20):
 
     channel_names = ['EEG Frontal', 'EEG Parietal', 'Acc X', 'Acc Y', 'Acc Z']
     time = np.arange(0, duration, 1/fs)
@@ -45,7 +45,7 @@ def plot_signals(original_dict, filtered_dict, key='continuous1', fs=1000, durat
     filtered = filtered_dict[key][:len(time), :]
 
     fig, axes = plt.subplots(5, 2, figsize=(12, 10), sharex=True)
-    fig.suptitle(f"Sinais antes e depois do processamento ({key})", fontsize=16)
+    fig.suptitle(f"Signals before and after processing ({key})", fontsize=16)
 
     for i in range(5):
         axes[i, 0].plot(time, original[:, i], color='gray')
@@ -53,9 +53,9 @@ def plot_signals(original_dict, filtered_dict, key='continuous1', fs=1000, durat
         axes[i, 0].set_title("Original")
 
         axes[i, 1].plot(time, filtered[:, i], color='green')
-        axes[i, 1].set_title("Filtrado")
+        axes[i, 1].set_title("Filered")
 
-    axes[-1, 0].set_xlabel("Tempo (s)")
-    axes[-1, 1].set_xlabel("Tempo (s)")
+    axes[-1, 0].set_xlabel("Time (s)")
+    axes[-1, 1].set_xlabel("Time (s)")
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.show()
