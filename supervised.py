@@ -5,6 +5,8 @@ import SVM
 import numpy as np
 import pandas as pd
 import os
+import h5py
+import joblib
 
 os.makedirs('supervised_output', exist_ok=True)
 
@@ -21,11 +23,16 @@ if not os.path.exists(combined_filename):
     post_clustering.relabel_dataset('unsupervised_output', 'supervised_output', label_maps)
     post_clustering.combine_and_remap_classes('supervised_output', reverse_map, combined_filename)
 
-X_train, X_val, X_test, y_train, y_val, y_test = data_splits.load_and_split_data()
+post_clustering.merge_mat_files([r'unsupervised_output\Mouse1.mat', r'unsupervised_output\Mouse2.mat', r'unsupervised_output\Mouse3.mat',], r'supervised_output\combined_all_mice.h5')
 
-X_train = pd.concat([X_train, X_val], axis=0).reset_index(drop=True)
-y_train = pd.concat([y_train, y_val], axis=0).reset_index(drop=True)
+X_train, X_test, y_train, y_test, idx_train, idx_test = data_splits.load_and_split_data()
+idx_test = idx_test.to_numpy()
 
+with h5py.File(r'supervised_output\combined_all_mice.h5', 'r') as f:
+    Data = f['combined_data'][:]
+
+Data_test = data_splits.get_original_samples(Data, idx_test, fs=1000, window_sec=30)
+data_splits.save_mat(pd.DataFrame(Data_test), 'supervised_output', 'Data_test.mat')
 
 param_grid = {
     'n_estimators': [10, 25, 50],  
@@ -34,8 +41,8 @@ param_grid = {
 }
 
 best_params = RF.grid_search(X_train, y_train, param_grid)
-best_model = RF.train_model(X_train, y_train, best_params)
-results = RF.evaluate_model(best_model, X_test, y_test, output_path='supervised_output')
+best_rf = RF.train_model(X_train, y_train, best_params)
+results = RF.evaluate_model(best_rf, X_test, y_test, output_path='supervised_output')
 
 param_grid = {
    'kernel': ['linear', 'rbf'],
@@ -43,7 +50,9 @@ param_grid = {
    'gamma': ['scale', 'auto'],
 }
 
-best_model = SVM.gridsearch(X_train, X_val, y_train, y_val, param_grid)
-SVM.svm_test(best_model, X_test, y_test, output_path='supervised_output')
+best_svm = SVM.gridsearch(X_train, y_train, param_grid)
+SVM.svm_test(best_svm, X_test, y_test, output_path='supervised_output')
 
-data_splits.save_Xtest(X_test, 'supervised_output')
+data_splits.save_mat(X_test, 'supervised_output', 'online_samples.mat')
+
+joblib.dump(best_svm, r'supervised_output\svm_model.joblib')
