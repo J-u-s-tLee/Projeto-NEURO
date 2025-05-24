@@ -18,7 +18,7 @@ reverse_map = {'w': 0, 'nrem': 1, 'rem': 2}
 combined_filename = os.path.join('supervised_output', 'final_labelled_data.csv')
 
 if not os.path.exists(combined_filename):
-    post_clustering.relabel_and_save_files('unsupervised_output', 'supervised_output', label_maps)
+    post_clustering.relabel_dataset('unsupervised_output', 'supervised_output', label_maps)
     post_clustering.combine_and_remap_classes('supervised_output', reverse_map, combined_filename)
 
 X_train, X_val, X_test, y_train, y_val, y_test = data_splits.load_and_split_data()
@@ -45,3 +45,5 @@ param_grid = {
 
 best_model = SVM.gridsearch(X_train, X_val, y_train, y_val, param_grid)
 SVM.svm_test(best_model, X_test, y_test, output_path='supervised_output')
+
+data_splits.save_Xtest(X_test, 'supervised_output')
