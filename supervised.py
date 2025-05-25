@@ -23,16 +23,22 @@ if not os.path.exists(combined_filename):
     post_clustering.relabel_dataset('unsupervised_output', 'supervised_output', label_maps)
     post_clustering.combine_and_remap_classes('supervised_output', reverse_map, combined_filename)
 
-post_clustering.merge_mat_files([r'unsupervised_output\Mouse1.mat', r'unsupervised_output\Mouse2.mat', r'unsupervised_output\Mouse3.mat',], r'supervised_output\combined_all_mice.h5')
+combined_filename = os.path.join('supervised_output', 'combined_all_mice.h5')
+
+if not os.path.exists(combined_filename):
+    post_clustering.merge_mat_files([r'unsupervised_output\Mouse1.mat', r'unsupervised_output\Mouse2.mat', r'unsupervised_output\Mouse3.mat',], r'supervised_output\combined_all_mice.h5')
 
 X_train, X_test, y_train, y_test, idx_train, idx_test = data_splits.load_and_split_data()
 idx_test = idx_test.to_numpy()
 
-with h5py.File(r'supervised_output\combined_all_mice.h5', 'r') as f:
-    Data = f['combined_data'][:]
+combined_filename = os.path.join('supervised_output', 'Data_test.mat')
 
-Data_test = data_splits.get_original_samples(Data, idx_test, fs=1000, window_sec=30)
-data_splits.save_mat(pd.DataFrame(Data_test), 'supervised_output', 'Data_test.mat')
+if not os.path.exists(combined_filename):
+    with h5py.File(r'supervised_output\combined_all_mice.h5', 'r') as f:
+        Data = f['combined_data'][:]
+
+    Data_test = data_splits.get_original_samples(Data, idx_test, fs=1000, window_sec=30)
+    data_splits.save_mat(pd.DataFrame(Data_test), 'supervised_output', 'Data_test.mat')
 
 param_grid = {
     'n_estimators': [10, 25, 50],  
@@ -53,6 +59,9 @@ param_grid = {
 best_svm = SVM.gridsearch(X_train, y_train, param_grid)
 SVM.svm_test(best_svm, X_test, y_test, output_path='supervised_output')
 
-data_splits.save_mat(X_test, 'supervised_output', 'online_samples.mat')
+combined_filename = os.path.join('supervised_output', 'online_samples.mat')
+
+if not os.path.exists(combined_filename):
+    data_splits.save_mat(X_test, 'supervised_output', 'online_samples.mat')
 
 joblib.dump(best_svm, r'supervised_output\svm_model.joblib')
