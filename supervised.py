@@ -41,9 +41,9 @@ if not os.path.exists(combined_filename):
     data_splits.save_mat(pd.DataFrame(Data_test), 'supervised_output', 'Data_test.mat')
 
 param_grid = {
-    'n_estimators': [10, 25, 50],  
-    'max_depth': [10, 20, None], 
-    'min_samples_split': [2, 5, 10]  
+    'n_estimators': [50, 100, 200],  
+    'max_depth': [20, 40, None], 
+    'min_samples_split': [5, 10, 20]  
 }
 
 best_params = RF.grid_search(X_train, y_train, param_grid)
