@@ -29,7 +29,7 @@ for name, (start, end) in mouse_id.items():
     data_dict = read_data.readData('Continuous', start, end, 'data_dict')
 
     processed_dict = signal_processing.FilterSignals(data_dict, fs=1000)
-    
+
     features = feature_extraction.featureVect(processed_dict)
     df_features = pd.DataFrame(features)
     Data, scaler = data_processing.Standardization(df_features)
@@ -72,3 +72,6 @@ for name, (start, end) in mouse_id.items():
     combined_dict = read_data.combine_channels(data_dict)
     Data_test = data_splits.get_original_samples(combined_dict, non_outliers, fs=1000, window_sec=30)
     data_splits.save_mat(Data_test, 'unsupervised_output', f'{name}.mat')
+
+data_processing.Histogram_plot(df_features, Data, "theta_f")
+signal_processing.plot_signals(data_dict, processed_dict, key='continuous22', fs=1000, duration=20, save_path=f'unsupervised_output/{name}_signals.png')
