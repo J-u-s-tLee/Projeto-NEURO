@@ -29,6 +29,6 @@ This project focuses on automated sleep stage classification in mice, followed b
 	- py online.py
 
 # Testing other datasets
-1. Convert .dat file to .mat format, by running " " in the Matlab terminal. 
+1. Convert .dat file to .mat format, by running "file_open_vEEG_data.m" in the Matlab terminal. 
 2. Save the .mat files in a folder named "Continuous".
 3. Run previous code. 
